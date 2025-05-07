@@ -18,7 +18,7 @@ st.title("Data Analysis Dashboard")
 with open("data_dictionary.json", "r") as f:
     data_dictionary = json.load(f)
 
-tab1, tab2, tab3, tab4 = st.tabs(["Data Management", "Chat", "Debug", "Original Chat"])
+(tab1, tab4, tab3) = st.tabs(["Data Management", "Original Chat", "Debug"])
 
 # Tab 1: Data Management
 with tab1:
@@ -114,65 +114,66 @@ with tab1:
 
     else:
         st.info("No CSV files available. Please upload some files first.")
-with tab2:
 
-    st.title("Chat Application with Auto-Scroll")
-    if "selected_files" in st.session_state and st.session_state["selected_files"]:
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+# with tab2:
 
-        # Display chat messages
-        chat_container = st.container()
-        with chat_container:
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.write(message["content"])
+#     st.title("Chat Application with Auto-Scroll")
+#     if "selected_files" in st.session_state and st.session_state["selected_files"]:
+#         if "messages" not in st.session_state:
+#             st.session_state.messages = []
 
-        # Chat input
-        user_input = st.chat_input("Type a message...")
-        if user_input:
-            # Add user message to chat history
-            st.session_state.messages.append({"role": "user", "content": user_input})
+#         # Display chat messages
+#         chat_container = st.container()
+#         with chat_container:
+#             for message in st.session_state.messages:
+#                 with st.chat_message(message["role"]):
+#                     st.write(message["content"])
 
-            # Display user message
-            with chat_container:
-                with st.chat_message("user"):
-                    st.write(user_input)
+#         # Chat input
+#         user_input = st.chat_input("Type a message...")
+#         if user_input:
+#             # Add user message to chat history
+#             st.session_state.messages.append({"role": "user", "content": user_input})
 
-            # Simulate response (in a real app, this would come from your backend)
-            response = f"Echo: {user_input}"
+#             # Display user message
+#             with chat_container:
+#                 with st.chat_message("user"):
+#                     st.write(user_input)
 
-            # Add assistant response to chat history
-            st.session_state.messages.append({"role": "assistant", "content": response})
+#             # Simulate response (in a real app, this would come from your backend)
+#             response = f"Echo: {user_input}"
 
-            # Display assistant response
-            with chat_container:
-                with st.chat_message("assistant"):
-                    st.write(response)
+#             # Add assistant response to chat history
+#             st.session_state.messages.append({"role": "assistant", "content": response})
 
-            # Auto-scroll to bottom using JavaScript
-            js_code = """
-            <script>
-                function scrollToBottom() {
-                    const messages = document.querySelector('.stChatMessageContent');
-                    if (messages) {
-                        const lastMessage = messages.lastElementChild;
-                        if (lastMessage) {
-                            lastMessage.scrollIntoView();
-                        }
-                    }
-                }
-                
-                // Execute scroll on load and after a short delay to ensure content is rendered
-                scrollToBottom();
-                setTimeout(scrollToBottom, 200);
-            </script>
-            """
-            html(js_code, height=0)
+#             # Display assistant response
+#             with chat_container:
+#                 with st.chat_message("assistant"):
+#                     st.write(response)
 
-    else:
-        st.info("Please select files to analyze in the Data Management tab first.")
-    # Initialize chat history in session state if it doesn't exist
+#             # Auto-scroll to bottom using JavaScript
+#             js_code = """
+#             <script>
+#                 function scrollToBottom() {
+#                     const messages = document.querySelector('.stChatMessageContent');
+#                     if (messages) {
+#                         const lastMessage = messages.lastElementChild;
+#                         if (lastMessage) {
+#                             lastMessage.scrollIntoView();
+#                         }
+#                     }
+#                 }
+
+#                 // Execute scroll on load and after a short delay to ensure content is rendered
+#                 scrollToBottom();
+#                 setTimeout(scrollToBottom, 200);
+#             </script>
+#             """
+#             html(js_code, height=0)
+
+#     else:
+#         st.info("Please select files to analyze in the Data Management tab first.")
+#     # Initialize chat history in session state if it doesn't exist
 
 
 with tab4:
