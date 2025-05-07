@@ -19,7 +19,7 @@ with open("data_dictionary.json", "r") as f:
     data_dictionary = json.load(f)
 
 tab1, tab2, tab3, tab4 = st.tabs(
-    ["Data Management", "Chat Interface", "Debug", "Test Chat"]
+    ["Data Management", "Original Chat", "Debug", "New Chat"]
 )
 
 # Tab 1: Data Management
