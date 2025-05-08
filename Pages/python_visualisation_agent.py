@@ -129,8 +129,7 @@ with tab2:
             )
             for file in selected_files
         ]
-        if "scroll_to_bottom" not in st.session_state:
-            st.session_state.scroll_to_bottom = True
+
         st.session_state.visualisation_chatbot.user_sent_message(
             user_query, input_data=input_data_list
         )
@@ -149,6 +148,7 @@ with tab2:
                 with msg_col:
                     if isinstance(msg, HumanMessage):
                         st.chat_message("You").markdown(msg.content)
+
                     elif isinstance(msg, AIMessage):
                         with st.chat_message("AI"):
                             st.markdown(msg.content)

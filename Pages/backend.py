@@ -20,11 +20,11 @@ class PythonChatbot:
         console.log("Creating graph")
         workflow = StateGraph(AgentState)
         workflow.add_node("agent", call_model)
-        # workflow.add_node("tools", call_tools)
+        workflow.add_node("tools", call_tools)
 
-        # workflow.add_conditional_edges("agent", route_to_tools)
+        workflow.add_conditional_edges("agent", route_to_tools)
 
-        # workflow.add_edge("tools", "agent")
+        workflow.add_edge("tools", "agent")
         workflow.set_entry_point("agent")
         return workflow.compile()
 

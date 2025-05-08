@@ -1,5 +1,15 @@
 {
-    "transactions_data.csv": {
+    "Loan_Applications_Dataset.csv": {
+        "description": "The loan CSV dataset",
+        "coverage": "Covers transactions throughout the 2010s",
+        "features": [
+            "transaction types",
+            "amounts",
+            "merchant information"
+        ],
+        "usage": "Perfect for analyzing spending patterns and building fraud detection models"
+    },
+    "menu_items.csv": {
         "description": "Detailed transaction records including amounts, timestamps, and merchant details",
         "coverage": "Covers transactions throughout the 2010s",
         "features": [
