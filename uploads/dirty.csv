@@ -1,0 +1,11 @@
+id,name,age,purchase_date,amount,customer_status,last_contact
+1,John Smith,34,2023-01-15,245.67,active,2023/04/21
+2,Jane Doe,,01-20-2023,189.99,inactive,NaN
+3,Robert Johnson,42,2023/02/05,NaN,active,2023-03-12
+4,Sarah Williams,29,Feb 27 2023,310.50,active,04/15/2023
+,Mike Brown,38,2023-03-10,175.25,pending,2023-05-02
+6,Emily Taylor,NaN,03/22/2023,220.00,active,May 1 2023
+7,David Miller,45,2023-04-05,,inactive,2023/06/18
+8,Lisa Garcia,31,04-12-2023,290.75,active,2023-07-01
+9,,36,2023/05/20,195.30,pending,NaN
+10,Chris Anderson,40,May 25 2023,NaN,,2023-08-10

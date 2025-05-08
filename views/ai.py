@@ -1,12 +1,145 @@
-import streamlit as st
-import pandas as pd
 import os
 import json
+import operator
+from typing import Dict
+import streamlit as st
+import pandas as pd
 from langchain_core.messages import HumanMessage, AIMessage
-from Pages.backend import PythonChatbot
-from Pages.data_models import InputData
+from typing import List
+from langgraph.graph import StateGraph
 import pickle
 from openai import OpenAI
+from dataclasses import dataclass
+from rich.console import Console
+from typing import Sequence, TypedDict, Annotated, List, Literal, Union
+from langchain_core.messages import BaseMessage
+
+
+@dataclass
+class InputData:
+    variable_name: str
+    data_path: str
+    data_description: str
+
+
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+    input_data: Annotated[List[InputData], operator.add]
+    intermediate_outputs: Annotated[List[dict], operator.add]
+    current_variables: dict
+    output_image_paths: Annotated[List[str], operator.add]
+
+
+console = Console()
+
+
+def create_data_summary(state: AgentState) -> str:
+    console.print(f"[purple]Creating data summary: {state}[/]")
+    summary = ""
+    variables = []
+    for d in state["input_data"]:
+        variables.append(d.variable_name)
+        summary += f"\n\nVariable: {d.variable_name}\n"
+        summary += f"Description: {d.data_description}"
+
+    if "current_variables" in state:
+        remaining_variables = [
+            v for v in state["current_variables"] if v not in variables
+        ]
+        for v in remaining_variables:
+            summary += f"\n\nVariable: {v}"
+    return summary
+
+
+def route_to_tools(
+    state: AgentState,
+) -> Literal["tools", "__end__"]:
+    """
+    Use in the conditional_edge to route to the ToolNode if the last message
+    has tool calls. Otherwise, route back to the agent.
+    """
+    console.print(f"[blue]Routing to tools: {state}[/]")
+    if messages := state.get("messages", []):
+        ai_message = messages[-1]
+    else:
+        raise ValueError(f"No messages found in input state to tool_edge: {state}")
+
+    if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
+        return "tools"
+    return "__end__"
+
+
+def call_model(state: AgentState):
+    console.print(f"[cyan]Calling model: {state}[/]")
+
+    current_data_template = """The following data is available:\n{data_summary}"""
+    current_data_message = HumanMessage(
+        content=current_data_template.format(data_summary=create_data_summary(state))
+    )
+    state["messages"] = [current_data_message] + state["messages"]
+
+    llm_outputs = model.invoke(state)
+
+    return {
+        "messages": [llm_outputs],
+        "intermediate_outputs": [current_data_message.content],
+    }
+
+
+def call_tools(state: AgentState):
+    console.print(f"[green]Calling tools: {state}[/]")
+
+    llm_outputs = model.invoke(state)
+
+    # Check if the last message is a tool message
+    if not isinstance(llm_outputs, ToolMessage):
+        print("The last message is not a tool message.")
+
+    return {
+        "messages": [llm_outputs],
+        "intermediate_outputs": [current_data_message.content],
+    }
+
+    # return llm_outputs
+
+
+class PythonChatbot:
+    def __init__(self):
+        super().__init__()
+        self.reset_chat()
+        self.graph = self.create_graph()
+
+    def create_graph(self):
+        console.log("Creating graph")
+        workflow = StateGraph(AgentState)
+        workflow.add_node("agent", call_model)
+        workflow.set_entry_point("agent")
+        return workflow.compile()
+
+    def user_sent_message(self, user_query, input_data: List[InputData]):
+        console.log(f"User query: {user_query}\n\n")
+        console.log(f"Input data: {input_data}\n\n")
+        starting_image_paths_set = set(sum(self.output_image_paths.values(), []))
+        input_state = {
+            "messages": self.chat_history + [HumanMessage(content=user_query)],
+            "output_image_paths": list(starting_image_paths_set),
+            "input_data": input_data,
+        }
+
+        result = self.graph.invoke(input_state, {"recursion_limit": 25})
+        self.chat_history = result["messages"]
+        new_image_paths = set(result["output_image_paths"]) - starting_image_paths_set
+        self.output_image_paths[len(self.chat_history) - 1] = list(new_image_paths)
+        if "intermediate_outputs" in result:
+            self.intermediate_outputs.extend(result["intermediate_outputs"])
+            console.log(f"Intermediate outputs: {result['intermediate_outputs']}\n\n")
+
+    def reset_chat(self):
+        console.log("Resetting chat")
+        self.chat_history = []
+        self.intermediate_outputs = []
+        self.output_image_paths = {}
+
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists("uploads"):
@@ -18,9 +151,7 @@ st.title("Data Analysis Dashboard")
 with open("data_dictionary.json", "r") as f:
     data_dictionary = json.load(f)
 
-(tab1, tab2, tab3, tab4) = st.tabs(
-    ["Data Management", "Original Chat", "Debug", "Development"]
-)
+(tab1, tab3, tab4) = st.tabs(["Data Management", "Debug", "Development"])
 
 # Tab 1: Data Management
 with tab1:
@@ -118,72 +249,6 @@ with tab1:
         st.info("No CSV files available. Please upload some files first.")
 
 
-with tab2:
-    # Initialize session state
-
-    def on_submit_user_query():
-        user_query = st.session_state["user_input"]
-        input_data_list = [
-            InputData(
-                variable_name=f"{file.split('.')[0]}",
-                data_path=os.path.abspath(os.path.join("uploads", file)),
-                data_description=data_dictionary.get(file, {}).get("description", ""),
-            )
-            for file in selected_files
-        ]
-
-        st.session_state.visualisation_chatbot.user_sent_message(
-            user_query, input_data=input_data_list
-        )
-
-    if "selected_files" in st.session_state and st.session_state["selected_files"]:
-        if "visualisation_chatbot" not in st.session_state:
-            st.session_state.visualisation_chatbot = PythonChatbot()
-        chat_container = st.container(height=None)
-        with chat_container:
-            # Display chat history with associated images
-            for msg_index, msg in enumerate(
-                st.session_state.visualisation_chatbot.chat_history
-            ):
-                msg_col, img_col = st.columns([2, 1])
-
-                with msg_col:
-                    if isinstance(msg, HumanMessage):
-                        st.chat_message("You").markdown(msg.content)
-
-                    elif isinstance(msg, AIMessage):
-                        with st.chat_message("AI"):
-                            st.markdown(msg.content)
-
-                    if (
-                        isinstance(msg, AIMessage)
-                        and msg_index
-                        in st.session_state.visualisation_chatbot.output_image_paths
-                    ):
-                        image_paths = (
-                            st.session_state.visualisation_chatbot.output_image_paths[
-                                msg_index
-                            ]
-                        )
-                        for image_path in image_paths:
-                            with open(
-                                os.path.join(
-                                    "images/plotly_figures/pickle", image_path
-                                ),
-                                "rb",
-                            ) as f:
-                                fig = pickle.load(f)
-                            st.plotly_chart(fig, use_container_width=True)
-        # Chat input
-        st.chat_input(
-            placeholder="Ask me anything about your data",
-            on_submit=on_submit_user_query,
-            key="user_input",
-        )
-    else:
-        st.info("Please select files to analyze in the Data Management tab first.")
-        # Update session state to scroll to bottom
-    st.session_state.scroll_to_bottom = True
 with tab3:
     if "visualisation_chatbot" in st.session_state:
         st.subheader("Intermediate Outputs")

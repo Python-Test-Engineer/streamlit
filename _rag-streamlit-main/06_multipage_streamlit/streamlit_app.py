@@ -8,17 +8,21 @@ about_page = st.Page(
     icon=":material/account_circle:",
     default=True,
 )
-project_1_page = st.Page(
+dashboard = st.Page(
     "views/sales_dashboard.py",
     title="Sales Dashboard",
     icon=":material/bar_chart:",
 )
-project_2_page = st.Page(
+chatbot = st.Page(
     "views/chatbot.py",
     title="Chat Bot",
     icon=":material/smart_toy:",
 )
-
+data = st.Page(
+    "views/ai.py",
+    title="AI Assistant",
+    icon=":material/smart_toy:",
+)
 
 # --- NAVIGATION SETUP [WITHOUT SECTIONS] ---
 # pg = st.navigation(pages=[about_page, project_1_page, project_2_page])
@@ -27,7 +31,7 @@ project_2_page = st.Page(
 pg = st.navigation(
     {
         "Info": [about_page],
-        "Projects": [project_1_page, project_2_page],
+        "Projects": [dashboard, chatbot, data],
     }
 )
 
