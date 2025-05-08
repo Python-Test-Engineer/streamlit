@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from Pages.backend import PythonChatbot
 from Pages.data_models import InputData
 import pickle
-
+from openai import OpenAI
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists("uploads"):
@@ -18,7 +18,9 @@ st.title("Data Analysis Dashboard")
 with open("data_dictionary.json", "r") as f:
     data_dictionary = json.load(f)
 
-(tab1, tab2, tab3) = st.tabs(["Data Management", "Original Chat", "Debug"])
+(tab1, tab2, tab3, tab4) = st.tabs(
+    ["Data Management", "Original Chat", "Debug", "Development"]
+)
 
 # Tab 1: Data Management
 with tab1:
@@ -204,3 +206,57 @@ with tab3:
         st.info(
             "No debug information available yet. Start a conversation to see intermediate outputs."
         )
+
+with tab4:
+    TITLE = "Pandas Data Analyst AI Copilot"
+
+    # ---------------------------
+    # Streamlit App Configuration
+    # ---------------------------
+
+    st.title(TITLE)
+
+    st.markdown(
+        """
+    Welcome to the Pandas Data Analyst AI. Upload a CSV or Excel file and ask questions about the data.  
+    The AI agent will analyze your dataset and return either data tables or interactive charts.
+    """
+    )
+
+    with st.expander("Example Questions", expanded=False):
+        st.write(
+            """
+            ##### Bikes Data Set:
+            
+            -  Show the top 5 bike models by extended sales.
+            -  Show the top 5 bike models by extended sales in a bar chart.
+            -  Show the top 5 bike models by extended sales in a pie chart.
+            -  Make a plot of extended sales by month for each bike model. Use a color to identify the bike models.
+            """
+        )
+
+    # ---------------------------
+    # OpenAI API Key Entry and Test
+    # ---------------------------
+
+    # st.sidebar.header("Enter your OpenAI API Key")
+
+    st.session_state["OPENAI_API_KEY"] = os.getenv(
+        "OPENAI_API_KEY", st.session_state.get("OPENAI_API_KEY", "")
+    )
+
+    # Test OpenAI API Key
+    if st.session_state["OPENAI_API_KEY"]:
+        # Set the API key for OpenAI
+        client = OpenAI(api_key=st.session_state["OPENAI_API_KEY"])
+
+        # Test the API key (optional)
+        try:
+            # Example: Fetch models to validate the key
+            models = client.models.list()
+            st.success("API Key is valid!")
+        except Exception as e:
+            st.error(f"Invalid API Key: {e}")
+    else:
+        st.info("Please enter your OpenAI API Key to proceed.")
+        st.stop()
