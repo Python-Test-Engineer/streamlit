@@ -29,8 +29,8 @@ class PythonChatbot:
         return workflow.compile()
 
     def user_sent_message(self, user_query, input_data: List[InputData]):
-        console.log(f"User query: {user_query}")
-        console.log(f"Input data: {input_data}")
+        console.log(f"User query: {user_query}\n\n")
+        console.log(f"Input data: {input_data}\n\n")
         starting_image_paths_set = set(sum(self.output_image_paths.values(), []))
         input_state = {
             "messages": self.chat_history + [HumanMessage(content=user_query)],
@@ -44,6 +44,7 @@ class PythonChatbot:
         self.output_image_paths[len(self.chat_history) - 1] = list(new_image_paths)
         if "intermediate_outputs" in result:
             self.intermediate_outputs.extend(result["intermediate_outputs"])
+            console.log(f"Intermediate outputs: {result['intermediate_outputs']}\n\n")
 
     def reset_chat(self):
         console.log("Resetting chat")
