@@ -1,14 +1,14 @@
+import os
+import json
+from typing import Literal
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, ToolMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from .state import AgentState
-import json
-from typing import Literal
 from .tools import complete_python_task
+from rich.console import Console
 
-# from langgraph.prebuilt import ToolInvocation, ToolExecutor
-# from langgraph.graph.message import ToolInvocation, ToolExecutor
-import os
+console = Console()
 
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
@@ -21,6 +21,7 @@ model = llm.bind_tools(tools)
 with open(
     os.path.join(os.path.dirname(__file__), "../prompts/main_prompt.md"), "r"
 ) as file:
+    console.log(f"Loading prompt from {file.name}")
     prompt = file.read()
 
 chat_template = ChatPromptTemplate.from_messages(
@@ -33,7 +34,7 @@ model = chat_template | model
 
 
 def create_data_summary(state: AgentState) -> str:
-    print(f"Creating data summary: {state}")
+    console.print(f"[purple]Creating data summary: {state}[/]")
     summary = ""
     variables = []
     for d in state["input_data"]:
@@ -57,7 +58,7 @@ def route_to_tools(
     Use in the conditional_edge to route to the ToolNode if the last message
     has tool calls. Otherwise, route back to the agent.
     """
-    print(f"Routing to tools: {state}")
+    console.print(f"[blue]Routing to tools: {state}[/]")
     if messages := state.get("messages", []):
         ai_message = messages[-1]
     else:
@@ -69,6 +70,7 @@ def route_to_tools(
 
 
 def call_model(state: AgentState):
+    console.print(f"[cyan]Calling model: {state}[/]")
 
     current_data_template = """The following data is available:\n{data_summary}"""
     current_data_message = HumanMessage(
@@ -85,6 +87,7 @@ def call_model(state: AgentState):
 
 
 def call_tools(state: AgentState):
+    console.print(f"[yellow]Calling tools: {state}[/]")
     last_message = state["messages"][-1]
     tool_invocations = []
     if isinstance(last_message, AIMessage) and hasattr(last_message, "tool_calls"):

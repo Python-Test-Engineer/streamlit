@@ -1,17 +1,15 @@
+import sys
+import os
 from langchain_core.tools import tool
-
 # from langchain_experimental.utilities.python import PythonREPL
 from langchain_core.messages import AIMessage
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
-import sys
-
-import os
-
-
 # import plotly.express as px
 import pandas as pd
+from rich.console import Console
 
+console = Console()
 
 persistent_vars = {}
 plotly_saving_code = """import pickle
@@ -35,6 +33,6 @@ def complete_python_task(
         thought: Internal thought about the next action to be taken, and the reasoning behind it. This should be formatted in MARKDOWN and be high quality.
         python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
     """
-    print(f"Thought: {thought}")
+    console.print(f"[green]Thought: {thought}[/]")
     print(f"Python code: {python_code}")
     return "NONE", {}

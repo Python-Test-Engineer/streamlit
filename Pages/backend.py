@@ -5,25 +5,32 @@ from langgraph.graph import StateGraph
 from Pages.graph.state import AgentState
 from Pages.graph.nodes import call_model, call_tools, route_to_tools
 from Pages.data_models import InputData
+from rich.console import Console
+
+console = Console()
+
 
 class PythonChatbot:
     def __init__(self):
         super().__init__()
         self.reset_chat()
         self.graph = self.create_graph()
-        
+
     def create_graph(self):
+        console.log("Creating graph")
         workflow = StateGraph(AgentState)
-        workflow.add_node('agent', call_model)
-        workflow.add_node('tools', call_tools)
+        workflow.add_node("agent", call_model)
+        workflow.add_node("tools", call_tools)
 
-        workflow.add_conditional_edges('agent', route_to_tools)
+        workflow.add_conditional_edges("agent", route_to_tools)
 
-        workflow.add_edge('tools', 'agent')
-        workflow.set_entry_point('agent')
+        workflow.add_edge("tools", "agent")
+        workflow.set_entry_point("agent")
         return workflow.compile()
-    
+
     def user_sent_message(self, user_query, input_data: List[InputData]):
+        console.log(f"User query: {user_query}")
+        console.log(f"Input data: {input_data}")
         starting_image_paths_set = set(sum(self.output_image_paths.values(), []))
         input_state = {
             "messages": self.chat_history + [HumanMessage(content=user_query)],
@@ -39,6 +46,7 @@ class PythonChatbot:
             self.intermediate_outputs.extend(result["intermediate_outputs"])
 
     def reset_chat(self):
+        console.log("Resetting chat")
         self.chat_history = []
         self.intermediate_outputs = []
         self.output_image_paths = {}
