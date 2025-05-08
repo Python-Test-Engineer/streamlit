@@ -33,6 +33,7 @@ model = chat_template | model
 
 
 def create_data_summary(state: AgentState) -> str:
+    print(f"Creating data summary: {state}")
     summary = ""
     variables = []
     for d in state["input_data"]:
@@ -56,7 +57,7 @@ def route_to_tools(
     Use in the conditional_edge to route to the ToolNode if the last message
     has tool calls. Otherwise, route back to the agent.
     """
-
+    print(f"Routing to tools: {state}")
     if messages := state.get("messages", []):
         ai_message = messages[-1]
     else:

@@ -5,18 +5,13 @@ from langchain_core.messages import AIMessage
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
 import sys
-from io import StringIO
+
 import os
 
-# import plotly.graph_objects as go
-# import plotly.io as pio
+
 # import plotly.express as px
 import pandas as pd
 
-# import sklearn
-
-
-# repl = PythonREPL()
 
 persistent_vars = {}
 plotly_saving_code = """import pickle
@@ -40,5 +35,6 @@ def complete_python_task(
         thought: Internal thought about the next action to be taken, and the reasoning behind it. This should be formatted in MARKDOWN and be high quality.
         python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
     """
-
+    print(f"Thought: {thought}")
+    print(f"Python code: {python_code}")
     return "NONE", {}
