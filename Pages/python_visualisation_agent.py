@@ -6,7 +6,6 @@ from langchain_core.messages import HumanMessage, AIMessage
 from Pages.backend import PythonChatbot, InputData
 import pickle
 
-from streamlit.components.v1 import html
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists("uploads"):
