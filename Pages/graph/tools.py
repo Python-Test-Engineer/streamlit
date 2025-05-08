@@ -18,23 +18,19 @@ console = Console()
 
 
 @tool(parse_docstring=True)
-def calculate(
-    graph_state: Annotated[dict, InjectedState], thought: str, python_code: str
+def complete_python_task(
+        graph_state: Annotated[dict, InjectedState], thought: str, python_code: str
 ) -> Tuple[str, dict]:
-    """Completes a python task by executing the provided code.
+    """Completes a python task
 
     Args:
         thought: Internal thought about the next action to be taken, and the reasoning behind it. This should be formatted in MARKDOWN and be high quality.
         python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
     """
-    current_variables = (
-        graph_state["current_variables"] if "current_variables" in graph_state else {}
-    )
+    current_variables = graph_state["current_variables"] if "current_variables" in graph_state else {}
     for input_dataset in graph_state["input_data"]:
         if input_dataset.variable_name not in current_variables:
-            current_variables[input_dataset.variable_name] = pd.read_csv(
-                input_dataset.data_path
-            )
+            current_variables[input_dataset.variable_name] = pd.read_csv(input_dataset.data_path)
     if not os.path.exists("images/plotly_figures/pickle"):
         os.makedirs("images/plotly_figures/pickle")
 
@@ -50,10 +46,9 @@ def calculate(
         exec_globals.update(current_variables)
         exec_globals.update({"plotly_figures": []})
 
+
         exec(python_code, exec_globals)
-        persistent_vars.update(
-            {k: v for k, v in exec_globals.items() if k not in globals()}
-        )
+        persistent_vars.update({k: v for k, v in exec_globals.items() if k not in globals()})
 
         # Get the captured stdout
         output = sys.stdout.getvalue()
@@ -62,30 +57,20 @@ def calculate(
         sys.stdout = old_stdout
 
         updated_state = {
-            "intermediate_outputs": [
-                {"thought": thought, "code": python_code, "output": output}
-            ],
-            "current_variables": persistent_vars,
+            "intermediate_outputs": [{"thought": thought, "code": python_code, "output": output}],
+            "current_variables": persistent_vars
         }
 
-        if "plotly_figures" in exec_globals:
+        if 'plotly_figures' in exec_globals:
             exec(plotly_saving_code, exec_globals)
             # Check if any images were created
             new_image_folder_contents = os.listdir("images/plotly_figures/pickle")
-            new_image_files = [
-                file
-                for file in new_image_folder_contents
-                if file not in current_image_pickle_files
-            ]
+            new_image_files = [file for file in new_image_folder_contents if file not in current_image_pickle_files]
             if new_image_files:
                 updated_state["output_image_paths"] = new_image_files
-
+            
             persistent_vars["plotly_figures"] = []
 
         return output, updated_state
     except Exception as e:
-        return str(e), {
-            "intermediate_outputs": [
-                {"thought": thought, "code": python_code, "output": str(e)}
-            ]
-        }
+        return str(e), {"intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]}

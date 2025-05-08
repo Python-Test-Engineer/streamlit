@@ -8,7 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, ToolMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from .state import AgentState
-from .tools import calculate
+from .tools import complete_python_task
 from rich.console import Console
 
 
@@ -17,7 +17,7 @@ console = Console()
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-tools = [calculate]
+tools = [complete_python_task]
 
 model = llm.bind_tools(tools)
 
