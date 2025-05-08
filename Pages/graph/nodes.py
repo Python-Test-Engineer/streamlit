@@ -88,28 +88,17 @@ def call_model(state: AgentState):
 
 
 def call_tools(state: AgentState):
-    console.print(f"[yellow]Calling tools: {state}[/]")
-    last_message = state["messages"][-1]
-    tool_invocations = []
-    if isinstance(last_message, AIMessage) and hasattr(last_message, "tool_calls"):
-        tool_invocations.append(last_message.tool_calls)
+    console.print(f"[green]Calling tools: {state}[/]")
 
-    responses = "TOOL RESULTS"
-    tool_messages = []
-    state_updates = {}
+    llm_outputs = model.invoke(state)
 
-    for tc, response in zip(last_message.tool_calls, responses):
-        if isinstance(response, Exception):
-            raise response
-        message, updates = response
-        tool_messages.append(
-            ToolMessage(content=str(message), name=tc["name"], tool_call_id=tc["id"])
-        )
-        console.print(f"[green]Tool call: {tc['name']} with arguments {tc['args']}[/]")
-        state_updates.update(updates)
+    # Check if the last message is a tool message
+    if not isinstance(llm_outputs, ToolMessage):
+        print("The last message is not a tool message.")
 
-    if "messages" not in state_updates:
-        state_updates["messages"] = []
+    return {
+        "messages": [llm_outputs],
+        "intermediate_outputs": [current_data_message.content],
+    }
 
-    state_updates["messages"] = tool_messages
-    return state_updates
+    # return llm_outputs

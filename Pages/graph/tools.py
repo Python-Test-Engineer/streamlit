@@ -1,10 +1,12 @@
 import sys
 import os
 from langchain_core.tools import tool
+
 # from langchain_experimental.utilities.python import PythonREPL
 from langchain_core.messages import AIMessage
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
+
 # import plotly.express as px
 import pandas as pd
 from rich.console import Console
@@ -35,4 +37,48 @@ def complete_python_task(
     """
     console.print(f"[green]Thought: {thought}[/]")
     print(f"Python code: {python_code}")
-    return "NONE", {}
+    return
+
+
+@tool(parse_docstring=True)
+def complete_python_task(
+    graph_state: Annotated[dict, InjectedState], thought: str, python_code: str
+) -> Tuple[str, dict]:
+    """Completes a python task
+
+    Args:
+        thought: Internal thought about the next action to be taken, and the reasoning behind it. This should be formatted in MARKDOWN and be high quality.
+        python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
+    """
+    output = "OUTPUT"
+
+    updated_state = {
+        "intermediate_outputs": [
+            {"thought": thought, "code": python_code, "output": output}
+        ],
+        "current_variables": "VARS",
+    }
+
+    return output, updated_state
+
+
+@tool(parse_docstring=True)
+def reverse_text(
+    graph_state: Annotated[dict, InjectedState], text: str, python_code: str
+) -> Tuple[str, dict]:
+    """Reverses the input text
+
+    Args:
+        text: text to reverse
+        python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
+    """
+    output = "OUTPUT"
+
+    updated_state = {
+        "intermediate_outputs": [
+            {"text": text, "code": python_code, "output": output}
+        ],
+        "current_variables": "VARS",
+    }
+
+    return output, updated_state
