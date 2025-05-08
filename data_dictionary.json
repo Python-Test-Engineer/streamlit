@@ -1,6 +1,6 @@
 {
     "Loan_Applications_Dataset.csv": {
-        "description": "The loan CSV dataset",
+        "description": "The loan CSV dataset I am using",
         "coverage": "Covers transactions throughout the 2010s",
         "features": [
             "transaction types",
